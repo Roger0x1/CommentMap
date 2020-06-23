@@ -26,9 +26,10 @@ namespace CommentMap.Controllers
 
         // GET: api/<DataController>
         [HttpGet]
+        [Produces("application/json")]
         public async Task<string> Get()
         {
-            var results = await _context.Entries.Select(e => e.DoNotDisplay == false).ToListAsync();
+            var results = await _context.Entries.Where(e => e.DoNotDisplay == false).ToListAsync();
             return JsonSerializer.Serialize(results);
         }        
 
