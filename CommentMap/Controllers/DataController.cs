@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using CommentMap.Data;
+﻿using CommentMap.Data;
 using CommentMap.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -35,14 +32,15 @@ namespace CommentMap.Controllers
 
         // POST api/<DataController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public IActionResult Post([FromForm]Entry entry)
         {
-            var entry = JsonSerializer.Deserialize<Entry>(value);
+            entry.DoNotDisplay = false;
+
 
             _context.Add(entry);
             _context.SaveChanges();
 
-            RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Home");
         }
         
     }

@@ -9,6 +9,7 @@
           integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
           crossorigin="" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" crossorigin="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
 }
 
 @section Scripts {
@@ -18,14 +19,43 @@
             crossorigin="">
     </script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
-    <!--  Starting basemap and program code -->
+    <!--  Starting program code -->
     <script type="text/javascript">
+        
+        var lat = "";
+        var lng = "";
+
+
         //  focusing the map on Savannah Lat: 32.081, Lng: -81.09 (note:  6 character limit will be in effect on lat and lng)
         var map = L.map('map').setView([32.081, -81.09], 13);
 
-        const uri = "api/data";
-        var dataobj = [];
+        //  Add the edit toolbar
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+        var drawControl = new L.Control.Draw({
+            draw: {
+                polyline: false,
+                polygon: false,
+                rectangle: false,
+                circle: false,
+                circlemarker: false
+            },
+            edit: {
+                featureGroup: drawnItems,
+                edit: true
+            }
+        });
+        map.addControl(drawControl);
+
+        // set the api path
+        const uri = "api/data";   
+
+        // set the hiwatermark to zero, used to track the id of the last data entry.  Allows for deltas.
+        var highwatermark = 0;
+
+        // populate the maplayer with data
         getData();
 
         // add basemap
@@ -41,12 +71,51 @@
         //  setting up the cluster plugin
         var markers = L.markerClusterGroup();
 
-        // adding a marker at focus point, can be removed later
-        //markers.addLayer(L.marker([32.081, -81.09]));
+        // Draw Events
+        map.on(L.Draw.Event.CREATED, function (e) {
+            var type = e.layerType;
 
-        // add markers to map
-        //map.addLayer(markers);
+            if (type === "marker") {
+                //  do marker specific actions
+                var coords = e.layer._latlng;
+                
+                
+                var formHtml = '<form role="form" class="form-horizontal" id="form" name="form" action="/api/data" method="POST">' +
+                    '<div class="form-group">' +
+                    '<label for="reportType">Type</label>' +
+                    '<select class="form-control" id="reportType" name="reportType">' +
+                    '<option value="Idea">Idea</option>' +
+                    '<option value="Problem">Problem</option>' +
+                    '</select>' +
+                    '</div><div class="form-group">'+
+                    '<label for="Description">Comment</label>' +
+                    '<textarea class="form-control" rows="6" id="comment" name="comment"></textarea>' +
+                    '</div>'+
+                    '<input style="display: none;" type="text" id="lat" name="lat" value="' + coords.lat.toFixed(6) + '" />' +
+                    '<input style="display: none;" type="text" id="lng" name="lng" value="' + coords.lng.toFixed(6) + '" />' +                    
+                    '<input id="submit" type="submit" value="Submit" /> ' +
+                    '</form>';
 
+                // popup Content 
+                var popupContent = formHtml;
+
+                var tempMarker = new L.marker(coords);
+                tempMarker.bindPopup(popupContent, {
+                    keepInView: true,
+                    closeButton: false
+                }).openPopup();
+                markers.addLayer(tempMarker);
+                map.addLayer(markers);                
+            }
+            // Do whatever else you need to, like save to db  
+            
+        }); 
+
+
+        // start library functions
+
+        
+        
         function getData()
         {
             fetch(uri).then(function (response)
@@ -54,10 +123,12 @@
                 return response.json();
             }).then(function (data)
             {
-                dataobj = JSON.parse(data);
+                //  deserialize the json result, loop to set the highwatermark and populate the markers layer
+                var dataobj = JSON.parse(data);
                 for (var item of dataobj)
                 {
-                    markers.addLayer(L.marker([item.Lat, item.Lng]).bindPopup(item.Comment));
+                    if (item.Id > highwatermark) highwatermark = item.Id;
+                    markers.addLayer(L.marker([item.Lat, item.Lng]).bindPopup(item.ReportType + ": " + item.Comment));
                     map.addLayer(markers);
                 }
                 

@@ -15,11 +15,11 @@ namespace CommentMap.Models
         [MaxLength(2000, ErrorMessage ="Too long, summarize")]
         public string Comment { get; set; }
 
-        [MaxLength(7, ErrorMessage ="Lat too long, truncate to 7 spaces")]
+        [MaxLength(10, ErrorMessage ="Lat too long, truncate to 10 spaces")]
         [Display(Name ="Latitude")]
         public string Lat { get; set;}
 
-        [MaxLength(7, ErrorMessage ="Longitude too long, truncate to 7 spaces")]
+        [MaxLength(10, ErrorMessage ="Longitude too long, truncate to 10 spaces")]
         [Display(Name ="Longitude")]
         public string Lng { get; set; }
 
