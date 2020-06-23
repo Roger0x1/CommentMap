@@ -35,8 +35,8 @@ namespace CommentMap
 
                     // this call ensures the DB exists, or it creates a new one.  
                     // Make sure your DB connection is set correctly before running the program.
-                    // context.Database.EnsureCreated();
-                    context.Database.Migrate();
+                     context.Database.EnsureCreated();
+                    // context.Database.Migrate();
                 }
                 catch (Exception ex)
                 {
