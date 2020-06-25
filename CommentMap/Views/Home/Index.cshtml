@@ -1,4 +1,5 @@
-﻿@{
+﻿@model MapViewModel
+@{
     ViewData["Title"] = "Comment Map";
 }
 
@@ -23,13 +24,18 @@
 
     <!--  Starting program code -->
     <script type="text/javascript">
-        
-        var lat = "";
-        var lng = "";
+        // initialize from viewmodel
+
+        var lat = @Model.lat;
+        var lng = @Model.lng;
+        var zoom = @Model.zoom;         
+
+        // set the api path
+        const uri = "api/data";     
 
 
-        //  focusing the map on Savannah Lat: 32.081, Lng: -81.09 (note:  6 character limit will be in effect on lat and lng)
-        var map = L.map('map').setView([32.081, -81.09], 13);
+        //  Initially, the map enters focused on savannah lat,lng from controller defaults, afterwards, it focuses the last entry submitted.
+        var map = L.map('map').setView([lat, lng], zoom);
 
         //  Add the edit toolbar
         var drawnItems = new L.FeatureGroup();
@@ -47,16 +53,9 @@
                 edit: true
             }
         });
-        map.addControl(drawControl);
+        map.addControl(drawControl);             
 
-        // set the api path
-        const uri = "api/data";   
-
-        // set the hiwatermark to zero, used to track the id of the last data entry.  Allows for deltas.
-        var highwatermark = 0;
-
-        // populate the maplayer with data
-        getData();
+        
 
         // add basemap
         L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
@@ -70,6 +69,9 @@
 
         //  setting up the cluster plugin
         var markers = L.markerClusterGroup();
+
+        // populate the maplayer with data
+        getData();
 
         // Draw Events
         map.on(L.Draw.Event.CREATED, function (e) {
@@ -112,9 +114,7 @@
         }); 
 
 
-        // start library functions
-
-        
+        // start library functions    
         
         function getData()
         {
@@ -126,8 +126,7 @@
                 //  deserialize the json result, loop to set the highwatermark and populate the markers layer
                 var dataobj = JSON.parse(data);
                 for (var item of dataobj)
-                {
-                    if (item.Id > highwatermark) highwatermark = item.Id;
+                {                    
                     markers.addLayer(L.marker([item.Lat, item.Lng]).bindPopup(item.ReportType + ": " + item.Comment));
                     map.addLayer(markers);
                 }
