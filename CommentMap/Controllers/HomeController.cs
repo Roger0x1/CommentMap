@@ -12,9 +12,13 @@ namespace CommentMap.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        public IActionResult Index(string lat = "32.081", string lng= "-81.09", int zoom=18)
         {
-            return View();
+            MapViewModel Model = new MapViewModel();
+            Model.lat = lat;
+            Model.lng = lng;
+            Model.zoom = zoom;             
+            return View(Model);
         }
 
         public IActionResult Privacy()

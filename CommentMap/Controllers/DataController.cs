@@ -2,6 +2,7 @@
 using CommentMap.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -33,13 +34,11 @@ namespace CommentMap.Controllers
         [HttpPost]
         public IActionResult Post([FromForm]Entry entry)
         {
-            entry.DoNotDisplay = false;
-
-
+            
             _context.Add(entry);
             _context.SaveChanges();
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Home", new { lat = entry.Lat, lng = entry.Lng });
         }
         
     }
